@@ -9,11 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@metamask/sdk": "^0.32.1",
+    "@tanstack/react-query": "^5.67.3",
     "ethers": "^6.13.5",
     "next": "15.2.2",
     "postcss": "^8.5.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "viem": "2.x",
+    "wagmi": "^2.14.13",
     "web3": "^4.16.0"
   },
   "devDependencies": {

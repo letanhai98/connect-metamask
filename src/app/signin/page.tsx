@@ -1,64 +1,57 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useAccount, useConnect, useDisconnect } from 'wagmi';
+import { useSignMessage } from 'wagmi';
 
 const SigninPage = () => {
-  const [account, setAccount] = useState(null);
-  const [signature, setSignature] = useState('');
+  const { address, isConnected } = useAccount();
+  const { connect, connectors } = useConnect();
+  const { disconnect } = useDisconnect();
+  const [siginature, setSiginature] = useState('');
 
-  const connectMetamask = async () => {
-    if (typeof window?.ethereum !== 'undefined') {
-      try {
-        // Request account access
-        const accounts = await window.ethereum.request({
-          method: 'eth_requestAccounts',
-        });
-        const userAccount = accounts[0];
-        setAccount(userAccount);
-      } catch (error) {
-        console.error('Error connecting to MetaMask', error);
-      }
-    } else {
-      alert('MetaMask is not installed. Please install it to use this app.');
-    }
-  };
+  const { signMessage } = useSignMessage({});
 
-  const signMessage = async () => {
-    if (!account) {
-      alert('Please connect your wallet first.');
-      return;
-    }
-
-    const message = 'Hello, this is a test message!';
-    try {
-      const signature = await window.ethereum.request({
-        method: 'personal_sign',
-        params: [message, account],
-      });
-      setSignature(signature);
-    } catch (error) {
-      console.error('Error signing message', error);
-    }
-  };
+  if (!isConnected) {
+    return (
+      <div className="flex justify-center items-center h-screen w-full">
+        <div className="">
+          {connectors.map((connector) => (
+            <button
+              className="bg-red-400 h-10 w-[200px] rounded-3xl"
+              key={connector.uid}
+              onClick={() => connect({ connector })}>
+              Wallet Connect
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col justify-center gap-4 items-center h-screen w-full">
+    <div className="flex flex-col justify-center items-center h-screen w-full">
+      <p>Connected: {address}</p>
       <button
-        onClick={connectMetamask}
-        className="bg-blue-600 rounded-2xl h-12 w-[200px] font-medium uppercase cursor-pointer hover:opacity-90">
-        Wallet Connect
-      </button>
-
-      <button
-        onClick={signMessage}
-        className="bg-yellow-600 rounded-2xl h-12 w-[200px] font-medium uppercase cursor-pointer hover:opacity-90">
+        className="bg-blue-500 h-10 w-[200px] rounded-3xl"
+        onClick={() =>
+          signMessage(
+            {
+              account: address,
+              message: 'This is a test',
+            },
+            {
+              onSuccess: (data) => {
+                setSiginature(data);
+              },
+            }
+          )
+        }>
         Sign Message
       </button>
+      <button onClick={() => disconnect()}>Disconnect</button>
 
-      <div className="flex flex-col gap-2 justify-center items-center">
-        {account && <p>Address: {account}</p>}
-        {signature && <p>Signature : {signature}</p>}
-      </div>
+      {siginature && <p>Signature: {siginature}</p>}
     </div>
   );
 };
